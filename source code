@@ -1,0 +1,1198 @@
+using System;
+using System.Diagnostics.Eventing.Reader;
+using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace final_final_proj
+{
+class filehandler : appointment
+{
+    public filehandler(string first, string last, string age, string address, string contact) : base(first, last, age, address, contact)
+    {
+        if (!string.IsNullOrEmpty(first))
+        {
+           
+            loading();
+            addapp();
+        }
+        else
+        {
+            loading();
+        }
+
+
+    }
+
+    public void save()
+    {
+        string path = "appointmentsdetails.txt";
+
+        using (StreamWriter write = new StreamWriter(path))
+        {
+            for (int i = 0; i < appmonth.Count; i++)
+            {
+                string str = "---------------------------------";
+
+                write.WriteLine(str); // Delimiter ni
+
+                // Write client details
+                write.WriteLine(fname[fname.Count - (i + 1)]);
+                write.WriteLine(lname[fname.Count - (i + 1)]);
+                write.WriteLine(Address[fname.Count - (i + 1)]);
+                write.WriteLine(Age[fname.Count - (i + 1)]);
+                write.WriteLine(Contact[fname.Count - (i + 1)]);
+
+
+                if (i < appmonth.Count)
+                {
+                    write.WriteLine(appmonth[i]);
+                    write.WriteLine(appday[i]);
+                    write.WriteLine(appyear[i]);
+                    write.WriteLine(apphour[i]);
+                    write.WriteLine(appperiod[i]);
+                    write.WriteLine(isonline[i]);
+                }
+            } 
+            
+        }
+    }//first save method
+   
+    public void save2()
+    {
+        
+        string path = "appointmentsdetails2.txt";
+       
+
+        using (StreamWriter write = new StreamWriter(path))
+        {
+            string str = "                --------------------------------------------------------------";
+            string str2 = "      ------------------------------------------";
+
+            write.WriteLine("                   Client name      |   Date     |  Time | Type");
+            write.WriteLine(str);
+
+
+            for (int i = 0; i <appmonth.Count; i++)
+            {
+
+
+                write.Write("                {0,-9} {1,-9}  ", fname[fname.Count - (i + 1)], lname[fname.Count - (i + 1)]);
+
+
+
+                // Write appointment details (Ensure it corresponds to the current client)
+                if (i < appmonth.Count)
+                {
+                    if (isonline[i] == false)
+                    {
+                        write.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Onsite",
+                appmonth[i], appday[i], appyear[i ], apphour[i ], appperiod[i ]);
+
+
+                    }
+                    else
+                    {
+
+                        write.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Online",
+                     appmonth[i], appday[i ], appyear[i], apphour[i ], appperiod[i ]);
+
+                    }
+                }
+                write.WriteLine();
+            }
+
+        }
+    }
+    public void readfile()
+    {
+        string filePath = "appointmentsdetails2.txt";
+
+        if (File.Exists(filePath))
+        {
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+
+                    Console.WriteLine(line);
+
+
+                }
+
+            }
+        }
+        else
+        {
+            Console.WriteLine("File does not exist.");
+        }
+
+    }
+    public void readfile2()
+    {
+        string filePath = "appointmentsdetails3.txt";
+
+        if (File.Exists(filePath))
+        {
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+
+                    Console.WriteLine(line);
+
+
+                }
+
+            }
+        }
+        else
+        {
+            Console.WriteLine("File does not exist.");
+        }
+
+    }
+
+    public void delete2()
+    {
+
+        string path = "appointmentsdetails2.txt";
+        if (File.Exists(path))
+        {
+
+            File.WriteAllText(path, string.Empty);
+            ;
+        }
+        else
+        {
+            Console.WriteLine("File not found.");
+        }
+    }
+    public void delete()
+    {
+        string del;
+        char choice;
+        bool found = false;
+
+        string path = "appointmentsdetails.txt";
+
+        if (File.Exists(path))
+        {
+
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine("(a) Wipe all data   (b) Delete a client");
+                    choice = char.Parse(Console.ReadLine());
+                    break;
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("Invalid input, please try again");
+                    Thread.Sleep(1000);
+                    Console.Clear();
+
+                    continue;
+                }
+            }
+
+            if (choice == 'a' || choice == 'A')
+            {
+                // Wipe all data
+                File.WriteAllText(path, string.Empty); // Clear the file
+                delete2();
+                delete3();// Custom delete operation (assumed to reset lists or data)
+                Console.WriteLine("All data deleted successfully.");
+            }
+            else if (choice == 'b' || choice == 'B')
+            {
+                while (true)
+                {
+                    try
+                    {
+                        Console.WriteLine("Enter client name to delete: ");
+                        del = Console.ReadLine();
+                        break;
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("Invalid input, please try again");
+                        Thread.Sleep(1000);
+                        Console.Clear();
+
+                        continue;
+                    }
+                }
+
+                for (int i = fname.Count - 1; i >= 0; i--) // Loop backward for safe removal
+                {
+                    if (!string.IsNullOrEmpty(fname[i]) &&
+                        (string.Equals(del, fname[i], StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(del, lname[i], StringComparison.OrdinalIgnoreCase)))
+                    {
+                        // Log deletion
+                        Console.WriteLine($"Deleting client: {fname[i]} {lname[i]}");
+
+                        // Remove client details
+                        fname.RemoveAt(i);
+                        lname.RemoveAt(i);
+                        Address.RemoveAt(i);
+                        Age.RemoveAt(i);
+                        Contact.RemoveAt(i);
+
+                        // Remove corresponding appointment details
+                        appmonth.RemoveAt(i-1);
+                        appday.RemoveAt(i-1);
+                        appyear.RemoveAt(i - 1);
+                        apphour.RemoveAt(i - 1);
+                        appperiod.RemoveAt(i - 1);
+                        isonline.RemoveAt(i -1);
+
+                        found = true;
+                        Console.WriteLine("Deleted successfully.");
+
+
+                    }else if (string.Equals(del, fname[i], StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(del, lname[i], StringComparison.OrdinalIgnoreCase)) {
+                        Console.WriteLine($"Deleting client: {fname[i]} {lname[i]}");
+
+                        // Remove client details
+                        fname.RemoveAt(i);
+                        lname.RemoveAt(i);
+                        Address.RemoveAt(i);
+                        Age.RemoveAt(i);
+                        Contact.RemoveAt(i);
+
+                      
+                        appmonth.RemoveAt(i - 1);
+                        appday.RemoveAt(i - 1);
+                        appyear.RemoveAt(i - 1);
+                        apphour.RemoveAt(i - 1);
+                        appperiod.RemoveAt(i - 1);
+                        isonline.RemoveAt(i - 1);
+                        found = true;
+
+                    }
+
+
+                }
+
+                if (found)
+                {
+                    // Rewrite
+                    File.WriteAllText(path, string.Empty); // Clear the file
+                    delete2(); 
+                    save2();   
+                    save();    
+                }
+                else
+                {
+                    Console.WriteLine($"No results found for '{del}'.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please select either 'a' or 'b'.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("File not found.");
+        }
+    }//first delete method
+
+   
+
+    public void delete3()
+    {
+
+        string path = "appointmentsdetails3.txt";
+        if (File.Exists(path))
+        {
+
+            File.WriteAllText(path, string.Empty);
+            Console.WriteLine("File contents deleted successfully.");
+        }
+        else
+        {
+            Console.WriteLine("File not found.");
+        }
+    }
+
+
+    public void loading()
+    {
+        string path = "appointmentsdetails.txt";
+
+        if (File.Exists(path))
+        {
+            using (StreamReader read = new StreamReader(path))
+            {
+                int i = 0;
+
+                while (!read.EndOfStream)
+                {
+                    string line = read.ReadLine();
+
+                    if (line.StartsWith("---------------------------------"))
+                    {
+                        continue;
+                    }
+                    if (i % 11 == 0)
+                    {
+                        fname.Add(line); // Assuming this is the client name
+                    }
+                    else if (i % 11 == 1) // Second line: appmonth
+                    {
+                        lname.Add(line);
+                    }
+                    else if (i % 11 == 2) // Third line: appday
+                    {
+                        Address.Add(line);
+                    }
+                    else if (i % 11 == 3) // Fourth line: appyear
+                    {
+                        Age.Add(line);
+                    }
+                    else if (i % 11 == 4) // Fifth line: apphour
+                    {
+                        Contact.Add(line);
+                    }
+                    else if (i % 11 == 5) // Sixth line: appperiod
+                    {
+                        if (int.TryParse(line, out int month))
+                        {
+                            appmonth.Add(month);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Invalid month format at line {i}: {line}");
+                        }
+                    }
+                    else if (i % 11 == 6)
+                    {
+
+                        if (int.TryParse(line, out int day))
+                        {
+                            appday.Add(day);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Invalid day format at line {i}: {line}");
+                        }
+
+                    }
+                    else if (i % 11 == 7)
+                    {
+
+                        if (int.TryParse(line, out int year))
+                        {
+                            appyear.Add(year);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Invalid year format at line {i}: {line}");
+                        }
+                    }
+
+
+                    else if (i % 11 == 8)
+                    {
+                        if (int.TryParse(line, out int hour))
+                        {
+                            apphour.Add(hour);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Invalid hour format at line {i}: {line}");
+                        }
+
+                    }
+                    else if (i % 11 == 9)
+                    {
+                        appperiod.Add(line);
+                    }
+                    else if(i% 11 == 10)
+                    {
+                        if (bool.TryParse(line, out bool onlineStatus))
+                        {
+                            isonline.Add(onlineStatus);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Invalid isOnline format at line {i}: {line}");
+                        }
+                    }
+                    i++;
+                }
+
+
+            }
+        }
+        else
+        {
+            Console.WriteLine("No appointment details found.");
+        }
+
+    }
+
+    public void search()
+    {
+        string str = "--------------------------------------------------";
+        string search;
+
+
+        while (true)
+        {
+            try
+            {
+                Console.WriteLine("Search name: ");
+                search = Console.ReadLine();
+                break;
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Invalid input, please try again");
+                Thread.Sleep(1000);
+                Console.Clear();
+
+                continue;
+            }
+
+        }
+
+        bool found = false;
+        for (int i = 0; i < fname.Count; i++)//fix kay ma usab ang order sa name sa textfile maybe try to put the client details into an array
+        {
+            if (string.IsNullOrEmpty(fname[i]))
+            {
+                if (string.Equals(search, fname[i], StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(search, lname[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    string type = isonline[i-1] ? "Online" : "Onsite";
+                    Console.WriteLine("Searched name: {0} {1}", fname[i], lname[i]);
+                    Console.WriteLine(str);
+                    Console.WriteLine("           Client details");
+                    Console.WriteLine("   Address: {0}        Age: {1}", Address[i], Age[i]);
+                   
+                    Console.WriteLine("   Contact no: {0}", Contact[i]);
+                    Console.WriteLine(str);
+                    Console.WriteLine("           Appointment details");
+                    Console.WriteLine(str);
+                    Console.WriteLine("Date: {0}/{1}/{2}          Type: {3}", appmonth[i - 1], appday[i-1], appyear[i - 1], type);
+                    Console.WriteLine("Time: {0}  {1}", apphour[i-1], appperiod[i-1]);
+                    found = true;
+                }
+            }
+            else
+            {
+                if (string.Equals(search, fname[i], StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(search, lname[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    string type = isonline[i-1] ? "Online" : "Onsite";
+                    Console.WriteLine("Searched name: {0} {1}", fname[i], lname[i]);
+                    Console.WriteLine(str);
+                    Console.WriteLine("       Client details ");
+                    Console.WriteLine("   Address: {0}        Age: {1}", Address[i], Age[i]);
+
+                    Console.WriteLine("   Contact no: {0}", Contact[i]);
+                    Console.WriteLine(str);
+                    Console.WriteLine("      Appointment details");
+                    Console.WriteLine(str);
+                    Console.WriteLine("Date: {0}/{1}/{2}      Type: {3}", appmonth[i-1], appday[i-1], appyear[i - 1 ], type);
+                    Console.WriteLine("Time: {0}  {1}", apphour[i-1], appperiod[i-1]);
+                    found = true;
+                }
+
+            }
+        }
+
+        if (!found)
+        {
+            Console.WriteLine("No results found for '{0}'.", search);
+        }
+
+
+    }
+    public void Mark()
+    {
+       
+        string marked;
+        bool found = false;
+        string markedAppointmentsPath = "appointmentsdetails3.txt";
+        string appointmentsPath = "appointmentsdetails.txt";
+
+        Console.WriteLine("Enter client name: ");
+        marked = Console.ReadLine();
+
+        using (StreamWriter writer = new StreamWriter(markedAppointmentsPath,true)) // Append mode
+        {
+            string separator = "              --------------------------------------------------------------";
+            string header = "                 Client name      |   Date     |  Time | Type";
+            if (new FileInfo(markedAppointmentsPath).Length == 0) // File is empty
+            {
+                writer.WriteLine(header);
+                writer.WriteLine(separator);
+            }
+
+
+
+
+            for (int i = 0; i < appmonth.Count; i++)//fix kay ma usab ang order sa name sa textfile maybe try to put the client details into an array
+               {
+            if (string.IsNullOrEmpty(fname[i]))
+            {
+                if (string.Equals(marked, fname[i+1], StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(marked, lname[i+1], StringComparison.OrdinalIgnoreCase))
+                    {
+                        writer.Write("               {0,-9} {1,-9}  ", fname[fname.Count - (i + 1)], lname[fname.Count - (i + 1)]);
+
+
+
+                        // Write appointment details (Ensure it corresponds to the current client)
+                        if (i < appmonth.Count)
+                        {
+                            if (isonline[i] == false)
+                            {
+                                writer.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Onsite",
+                        appmonth[i], appday[i], appyear[i], apphour[i], appperiod[i]);
+
+
+                            }
+                            else
+                            {
+
+                                writer.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Online",
+                             appmonth[i], appday[i], appyear[i], apphour[i], appperiod[i]);
+
+                            }
+                        }
+                        writer.WriteLine();
+
+                        // Remove all client and appointment details
+                        fname.RemoveAt(i+1);
+                        lname.RemoveAt(i+1);
+                        Address.RemoveAt(i + 1);
+                        Age.RemoveAt(i + 1);
+                        Contact.RemoveAt(i+1);
+                        appmonth.RemoveAt(i);
+                        appday.RemoveAt(i);
+                        appyear.RemoveAt(i );
+                        apphour.RemoveAt(i );
+                        appperiod.RemoveAt(i );
+                        isonline.RemoveAt(i );
+
+                        Console.WriteLine($" appointment completed for client: {marked}");
+
+                        found = true;
+                }
+            }
+            else
+            {
+                if (string.Equals(marked, fname[i+1], StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(marked, lname[i+1], StringComparison.OrdinalIgnoreCase))
+                {
+                        writer.Write("      {0,-9} {1,-9}  ", fname[fname.Count - (i + 1)], lname[fname.Count - (i + 1)]);
+
+
+
+                        // Write appointment details (Ensure it corresponds to the current client)
+                        if (i < appmonth.Count)
+                        {
+                            if (isonline[i] == false)
+                            {
+                                writer.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Onsite",
+                        appmonth[i], appday[i], appyear[i], apphour[i], appperiod[i]);
+
+
+                            }
+                            else
+                            {
+
+                                writer.Write("|{0,2:D2}/{1,2:D2}/{2,4} | {3,2:D2}:{4,-2} | Online",
+                             appmonth[i], appday[i], appyear[i], apphour[i], appperiod[i]);
+
+                            }
+                        }
+                        writer.WriteLine();
+
+                        // Remove all client and appointment details
+                        fname.RemoveAt(i + 1);
+                        lname.RemoveAt(i + 1);
+                        Address.RemoveAt(i + 1);
+                        Age.RemoveAt(i + 1);
+                        Contact.RemoveAt(i+1);
+                        appmonth.RemoveAt(i );
+                        appday.RemoveAt(i );
+                        appyear.RemoveAt(i );
+                        apphour.RemoveAt(i );
+                        appperiod.RemoveAt(i );
+                        isonline.RemoveAt(i );
+
+                        Console.WriteLine($"appointment completed for  client: {marked}");
+                        found = true;
+                }
+
+            }
+        }
+      }
+
+        if (found)
+        {
+            // Rewrite updated appointments to the original file
+            File.WriteAllText(appointmentsPath, string.Empty);
+            delete2(); // Custom delete operation
+            save2();   // Save remaining client and appointment details
+            save(); // Clear file
+                    // Save remaining appointments
+            Console.WriteLine("Updated appointments saved successfully.");
+        }
+        else
+        {
+            Console.WriteLine("Client not found.");
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+}
+ class clientinfo
+ {
+     protected List<string> fname = new List<string>(), lname = new List<string>(), Address = new List<string>(), Age = new List<string>(),
+         Contact = new List<string>();
+      
+
+   
+
+     public clientinfo(string first, string last, string age, string address, string contact)
+     {
+
+         fname.Add(first);
+         lname.Add(last);
+         Address.Add(address);
+         Age.Add(age);
+         Contact.Add(contact);
+
+     }
+     public void view()
+     {
+         for (int i = 0; i < fname.Count; i++)
+         {
+             Console.WriteLine(fname[i]);
+         }
+
+
+     }
+  
+     
+ }
+
+
+ class appointment:clientinfo
+ {
+     private int[] busyschedday = { 20241031, 20241101, 20241102,20240101 };
+     protected List<int> appmonth = new List<int>(), appday = new List<int>(), appyear = new List<int>(), apphour = new List<int>();
+     protected List<string> appperiod = new List<string>();
+     public bool online;
+     protected List<bool> isonline = new List<bool>();
+
+     public appointment(string first, string last, string age, string address, string contact) : base(first, last, age,address, contact)
+     {
+        
+
+     }
+     public void appview()
+     {
+         for (int i = 0; i < appmonth.Count; i++) { 
+         Console.WriteLine(appmonth[i]);
+             Console.WriteLine(fname[i]);
+                 }
+     }
+
+     public void addapp()
+     {
+         int month, day, year, hour;
+         string period;
+         char choice;
+
+         while (true)
+         {
+             try
+             {
+                 Console.Clear();
+                 Console.WriteLine("                                             SCHEDULLY   ");
+                 Console.WriteLine();
+                 Console.WriteLine();
+                 Console.WriteLine("Is this for online or onsite consulations?");
+                 Console.WriteLine("(a) Online    (b)Onsite  ");
+                 choice = char.Parse(Console.ReadLine());
+                 break;
+             }
+             catch (FormatException)
+             {
+                 Console.WriteLine("Invalid input, please try again");
+                 Thread.Sleep(1000);
+                 Console.Clear();
+
+                 continue;
+             }
+         }
+         online = (choice == 'a' || choice == 'A');
+         isonline.Add(online);
+
+
+         do
+         {
+            
+             
+           
+             do
+             {
+                 while (true)
+                 {
+                     try
+                     {
+                         Console.Clear();
+                         Console.WriteLine("                                             SCHEDULLY   ");
+                         Console.WriteLine();
+                         Console.WriteLine();
+                         Console.WriteLine("Appointment details");
+
+                         Console.WriteLine("Date details: ");
+                         Console.WriteLine("Month: ");
+                         month = int.Parse(Console.ReadLine());
+
+                         Console.WriteLine();
+
+                         Console.WriteLine("Day: ");
+                         day = int.Parse(Console.ReadLine());
+
+                         Console.WriteLine();
+                         Console.WriteLine("Year: ");
+                         year = int.Parse(Console.ReadLine());
+                         break;
+                     }
+                     catch (FormatException e)
+                     {
+                         Console.WriteLine("Invalid input, please try again");
+                         Thread.Sleep(1000);
+                         Console.Clear();
+
+                         continue;
+                     }
+
+                 }
+                 Console.WriteLine();
+
+                 int fulldate = year * 10000 + month * 100 + day;
+                 if (appointcheck(fulldate))
+                 {
+                     Console.WriteLine("Unfortunately, the doctor is away on that date, please pick another date");
+                     Thread.Sleep(2000);
+                     month = 0;
+                     day = 0;
+                     year = 0;
+
+                     Console.Clear();
+
+
+                     continue;
+                 }
+                 else
+                 {
+                     break;
+                 }
+
+
+             } while (true);
+
+
+
+             do
+             {
+                 while (true)
+                 {
+                     try
+                     {
+                         Console.WriteLine();
+                         Console.WriteLine("time details");
+                         Console.WriteLine("hour: ");
+                         hour = int.Parse(Console.ReadLine());
+
+                         Console.WriteLine();
+                         Console.WriteLine("Period: ");
+                         period = Console.ReadLine();
+                         break;
+                     }
+                     catch (FormatException )
+                     {
+                         Console.WriteLine("Invalid input, please try again");
+                         Thread.Sleep(1000);
+                         Console.Clear();
+
+                         continue;
+                     }
+
+                 }
+                 if (timecheck(hour, period))
+                 {
+                     Console.WriteLine("Unfortunately, the doctor is away during that time period");
+                     Thread.Sleep(2000);
+                     hour = 0;
+                     period = null;
+                     Console.Clear();
+                     continue;
+                 }
+                 else
+                 {
+                     break;
+                 }
+
+             } while (true);
+
+             if (sameappcheck(month, day, hour, period))
+             {
+                 Console.WriteLine("Unfortunately, someone is booked during that time");
+                 Thread.Sleep(2000);
+                 month = 0;
+                 day = 0;
+                 year = 0;
+                 hour = 0;
+                 period = null;
+                 Console.Clear();
+                 continue;
+
+
+             }
+             else
+             {
+                 break;
+             }
+
+
+         } while (true);
+
+
+
+
+         appmonth.Add(month);
+         appday.Add(day);
+         appyear.Add(year);
+         apphour.Add(hour);
+         appperiod.Add(period);
+
+     }
+     public bool appointcheck(int date)
+     {
+         for (int i = 0; i < busyschedday.Length; i++)
+         {
+             if (busyschedday[i] == date)
+             {
+                 return true;
+
+             }
+         }
+         return false;
+     }
+     public bool timecheck(int hour, string period)
+     {
+         if (hour < 9 && period == "AM" || hour > 5 && period == "PM")
+         {
+             return true;
+         }
+         else
+         {
+             return false;
+         }
+     }
+
+     public bool sameappcheck(int month, int day, int hour, string period)
+     {
+         for (int i = 0; i < appmonth.Count; i++) { 
+             
+             if(month == appmonth[i] &&  day == appday[i] && hour == apphour[i] && period == appperiod[i])
+             {
+                 return true;
+             }
+
+
+         
+         }
+         return false;
+
+     }
+
+ }
+
+
+
+    internal class Program
+        {
+            static void Main(string[] args)
+            {
+            string str = "--------------------------------------------------------------------------------------------------------------------";
+                char choice1, choice2, choice3;
+            string first, last, address, age, contact;
+           
+                do
+               {
+                Console.WriteLine("                                             SCHEDULLY   ");
+                Console.WriteLine();
+                Console.WriteLine();
+
+                while (true)
+                {
+                    try
+                    {
+                        Console.WriteLine("Who's using?");
+                        Console.WriteLine();
+                        Console.WriteLine(str);
+                        Console.WriteLine("             |  (a)Secretary       |                                        |   (b)doctor   |");
+                        Console.WriteLine(str);
+                        Console.WriteLine();
+                      
+                        choice1 = char.Parse(Console.ReadLine());
+                        break;
+                    }
+                    catch (FormatException ex)
+                    {
+                        Console.WriteLine("Invalid input, please try again");
+                        Thread.Sleep(1000);
+                        Console.Clear();
+
+                        continue;
+
+                    }
+                }
+
+                if (choice1 == 'a' || choice1 == 'A')
+                {
+                    Console.Clear();
+                 
+                    while (true)
+                    {
+                        try
+                        {
+                            Console.WriteLine("                                             SCHEDULLY   ");
+                            Console.WriteLine();
+                            Console.WriteLine();
+
+                            Console.WriteLine("What would you like to do: ");
+                            Console.WriteLine();
+                            Console.WriteLine(str);
+                            Console.WriteLine("    | (a)add appointment |   | (b)delete appointment |   | (c)view appointments |   | (d) search client | ");
+                            Console.WriteLine(str);
+
+                            choice2 = char.Parse(Console.ReadLine());
+                            break;
+                        }
+                        catch (System.FormatException ex)
+                        {
+
+                            Console.WriteLine("Invalid input, please try again");
+                            Thread.Sleep(1000);
+                            Console.Clear();
+
+                            continue;
+                        }
+                    }
+                    if (choice2 == 'a' || choice2 == 'A')
+                    {
+                        Console.Clear();
+                        Console.WriteLine("                                             SCHEDULLY   ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+
+                        Console.WriteLine("Client details ");
+                        Console.WriteLine("Enter first name: ");
+                        first = Console.ReadLine();
+                        Console.WriteLine();
+
+                        Console.WriteLine("Enter last name: ");
+                        last = Console.ReadLine();
+                        Console.WriteLine();
+
+                        Console.WriteLine("Enter age: ");
+                        age = Console.ReadLine();
+                        Console.WriteLine();
+
+                        Console.WriteLine("Enter address: ");
+                        address = Console.ReadLine();
+                        Console.WriteLine();
+
+                        Console.WriteLine("Enter contact");
+                        contact = Console.ReadLine();
+
+
+                        Console.Clear();
+
+                        clientinfo client = new clientinfo(first, last, age, address, contact);
+
+                        client.view();
+
+                        appointment appointment = new appointment(first, last, age, address, contact);
+
+
+                        filehandler file = new filehandler(first, last, age, address, contact);
+                        file.save2();
+                        file.save();
+
+
+
+
+                    }
+                    else if (choice2 == 'b' || choice2 == 'B')
+                    {
+                        Console.Clear();
+                      
+                        Console.WriteLine("                                             SCHEDULLY   ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                              REMOVE");
+                        Console.WriteLine();
+                        Console.WriteLine(str);
+                        files.delete();
+                        Console.WriteLine(str);
+
+
+                    }
+                    else if (choice2 == 'c' || choice2 == 'C')
+                    {
+                        Console.Clear();
+                       
+                        Console.WriteLine("                                             SCHEDULLY   ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                                         APPOINTMENTS");
+                        Console.WriteLine();
+                      
+                        files.readfile();
+                       
+                    }
+                    else if (choice2 == 'd' || choice2 == 'D')
+                    {
+                        Console.Clear();
+                        Console.WriteLine("                                             SCHEDULLY   ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                                     SEARCH A CLIENT") ;
+                        Console.WriteLine(str);
+                        files.search();
+                        Console.WriteLine(str) ;
+                    }
+                }
+
+
+
+
+
+                else if (choice1 == 'b' || choice1 == 'B')
+                {
+
+                    char choiced;
+                    Console.Clear();
+                    Console.WriteLine("                                             SCHEDULLY   ");
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine("What would you like to do?");
+                    Console.WriteLine(str);
+                    Console.WriteLine("        | (a)view on going appointments |    | (b)Mark appointments |     | (c)View completed appointments |  ");
+                    Console.WriteLine(str);
+                    choiced = char.Parse(Console.ReadLine());
+
+
+                    if (choiced == 'a' || choiced == 'A')
+                    {
+                        Console.Clear() ;
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                 On Going Appointments    ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        files.readfile();
+                    }
+                    else if (choiced == 'b' || choiced == 'B')
+                    {
+                        Console.Clear();
+                       
+                        Console.WriteLine("                                             SCHEDULLY   ");
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                                 MARK AS DONE") ;
+                        Console.WriteLine();
+                        Console.WriteLine(str) ;
+                        files.Mark();
+                        Console.WriteLine(str);
+                    }
+                    else if (choiced == 'c' || choiced == 'C')
+                    {
+                        Console.Clear();
+                        filehandler files = new filehandler(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+                        Console.WriteLine("                 Completed Appointments    ");
+                        Console.WriteLine();
+                        Console.WriteLine();   
+                        files.readfile2();
+                    }
+                    else
+                    {
+                        Console.WriteLine("That's not on the options");
+
+                    }
+
+
+                }
+                else
+                {
+                    Console.WriteLine("That's not a character");
+                }
+
+                while (true)
+                {
+                    try
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine("again? (y/n)");
+                        choice3 = char.Parse(Console.ReadLine());
+                        break;
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("Invalid input, please try again");
+                        Thread.Sleep(1000);
+                        Console.Clear();
+
+                        continue;
+                    }
+                }
+
+                    if(choice3 == 'n' || choice3 == 'N') { break; }
+
+                    Console.Clear();
+
+
+                }while(true);
+            }
+        }
+    
+}
